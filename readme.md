@@ -17,6 +17,6 @@ Inditashoz:
   figyeljuk a `Server is running...` valaszt, majd ez a folyamat elfoglal egy terminalt.
 
   Az App egy teszt Gmail fiokot hasznal a magic linkek elkuldeserhez. Kerem ne ijedjenek meg ha a testszoftbizmailer@gmail.com email cimrol uzenetet kapnak.
-
+  Elerheto a githubon is [ezen]('https://github.com/Elod23/MagicURLDemoApp') a linken.
   Remelem tetszeni fog es a Tanarno egyedinek talalja,
   Varga Elod
