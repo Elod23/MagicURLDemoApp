@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (id)
 );
 
-INSERT INTO users (`name`, `password`, `email`) VALUES ('test', 'password1', 'testsoftbizmailer@gmail.com');
+INSERT INTO users (`name`, `password`, `email`) VALUES ('test', 'password1', 'testszoftbizmailer@gmail.com');

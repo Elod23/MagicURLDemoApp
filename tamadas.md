@@ -11,6 +11,8 @@ A megkapott emailben egy hasonlo linket talalunk.
 
 Biztonsagi resek:
 
+- A link esetleges ellopasa utan azt a lejarataig akarki, akarhol, akarmeddig felahsznalhatja egy user session kialakitasaert,
+  azt pedig addig tarthatja nyitva, ameddig a rendszer engedi.
 - A Magic Link vilagosan leirja hogy milyen autentikacios fazisokat implementaltunk. Ez elosegiti a DDos vagy bruteforce tamadasokat.
 - A Link tartalmaz egy credentials URL parametert, amiben ha az = karaktereket megfigyeljuk konnyen rajovunk hogy base64 kodolt.
   Abban az esetben ha nem kivanjuk tarolni a teljes tokent, ez kikerulhetetlen, hiszen vissza is kell tudjuk fejteni az adatokat.
@@ -35,3 +37,5 @@ A folyamat veghezvitelehez es egy sikeres bejelentkezeshez:
 - Klikkeljunk a linkre.
 - Kivancsisag eseten a `credentials=XXX` = utani reszet vigyuk be egy base64 dekoderbe.
 - A jelszo visszafejtese utan lepjunk ki es jelentkezzunk be jelszoval.
+
+!!Fontos figyelni arra, hogy jeletkezzunk ki, mielott mas belepesi modszert hasznalunk. Pl. ne legyunk bejelentkezve egy felhasznaloval egy ablakban magic link segitsegevel, a masik ablakba pedig probaljunk belepni jelszoval.

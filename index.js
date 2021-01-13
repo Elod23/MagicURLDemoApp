@@ -145,6 +145,13 @@ app.post(
 
                 res.redirect('/');
               } else {
+                if (rows[0].password == user_pass) {
+                  req.session.isLoggedIn = true;
+                  req.session.userID = rows[0].id;
+                  console.log(req.session.userID);
+
+                  res.redirect('/');
+                }
                 res.render('login-register', {
                   login_errors: ['Invalid Password!'],
                 });
@@ -249,6 +256,7 @@ app.get('/magicLinkLogin', (req, res) => {
     var decodedCredentials = Buffer.from(credentialsEncoded, 'base64');
     var email = decodedCredentials.toString().split('==')[0];
     var password = decodedCredentials.toString().split('==')[1];
+    console.log(`${email}  ${password}`);
     dbConnection
       .execute('SELECT * FROM `users` WHERE `email`=? AND `password`=?', [
         email,
