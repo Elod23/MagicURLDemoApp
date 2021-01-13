@@ -7,4 +7,4 @@ A MagicURL problemak kikuszobolesere a kovetkezo javitasokat eszkozoltem:
      hogy bar nem teljesen, de erosen magabiztosan kimondhassuk, hogy ha senki sem allitja vissza az adatbazisunk allapotat, akkor azzal a linkkel tobbe nem lehet bejelentkezni.
      ![Destroy token](./Destroy.PNG)
 
-A javitott kod elerheto [ezen]() a linken.
+A javitott kod elerheto [ezen](https://github.com/Elod23/MagicURLDemoApp/tree/javitott) a linken.
