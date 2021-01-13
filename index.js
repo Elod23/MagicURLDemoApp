@@ -40,7 +40,9 @@ const ifLoggedin = (req, res, next) => {
 // app belseje
 app.get('/', ifNotLoggedin, (req, res, next) => {
   dbConnection
-    .execute('SELECT `email` FROM `users` WHERE `id`=?', [req.session.userID])
+    .execute('SELECT `email` FROM `usersWithLogin` WHERE `id`=?', [
+      req.session.userID,
+    ])
     .then(([rows]) => {
       res.render('home', {
         name: rows[0].email,
@@ -58,7 +60,9 @@ app.post(
       .isEmail()
       .custom((value) => {
         return dbConnection
-          .execute('SELECT `email` FROM `users` WHERE `email`=?', [value])
+          .execute('SELECT `email` FROM `usersWithLogin` WHERE `email`=?', [
+            value,
+          ])
           .then(([rows]) => {
             if (rows.length > 0) {
               return Promise.reject('This E-mail already in use!');
@@ -83,7 +87,7 @@ app.post(
           // tarolas
           dbConnection
             .execute(
-              'INSERT INTO `users`(`name`, `email`,`password`) VALUES(?,?,?)',
+              'INSERT INTO `usersWithLogin`(`name`, `email`,`password`) VALUES(?,?,?)',
               [user_name, user_email, hash_pass]
             )
             .then((result) => {
@@ -119,7 +123,9 @@ app.post(
   [
     body('user_email').custom((value) => {
       return dbConnection
-        .execute('SELECT `email` FROM `users` WHERE `email`=?', [value])
+        .execute('SELECT `email` FROM `usersWithLogin` WHERE `email`=?', [
+          value,
+        ])
         .then(([rows]) => {
           if (rows.length == 1) {
             return true;
@@ -134,7 +140,7 @@ app.post(
     const { user_pass, user_email } = req.body;
     if (validation_result.isEmpty()) {
       dbConnection
-        .execute('SELECT * FROM `users` WHERE `email`=?', [user_email])
+        .execute('SELECT * FROM `usersWithLogin` WHERE `email`=?', [user_email])
         .then(([rows]) => {
           bcrypt
             .compare(user_pass, rows[0].password)
@@ -145,13 +151,6 @@ app.post(
 
                 res.redirect('/');
               } else {
-                if (rows[0].password == user_pass) {
-                  req.session.isLoggedIn = true;
-                  req.session.userID = rows[0].id;
-                  console.log(req.session.userID);
-
-                  res.redirect('/');
-                }
                 res.render('login-register', {
                   login_errors: ['Invalid Password!'],
                 });
@@ -181,12 +180,14 @@ app.post(
   [
     body('user_email').custom((value) => {
       return dbConnection
-        .execute('SELECT `email` FROM `users` WHERE `email`=?', [value])
+        .execute('SELECT `email` FROM `usersWithLogin` WHERE `email`=?', [
+          value,
+        ])
         .then(([rows]) => {
           if (rows.length == 1) {
             return true;
           }
-          return Promise.reject(`There is no user associated with ${value}!`);
+          return Promise.reject(`An error occurred, please try again!`);
         })
         .catch((err) => {
           res.render('login-magicurl', {
@@ -199,41 +200,46 @@ app.post(
   (req, res) => {
     const user_email = req.body.user_email;
     dbConnection
-      .execute('SELECT * FROM `users` WHERE `email`=?', [user_email])
+      .execute('SELECT * FROM `usersWithLogin` WHERE `email`=?', [user_email])
       .then(([rows]) => {
         let email = rows[0].email;
-        let password = rows[0].password;
-        var encodedCredentials = Buffer.from(email + '==' + password).toString(
-          'base64'
-        );
-        let magicLink = `http://localhost:3000/magicLinkLogin?way=email&credentials=${encodedCredentials}`;
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: 'testSzoftBizMailer@gmail.com',
-            pass: 'Test123!',
-          },
-        });
-        const mailOptions = {
-          from: 'testSzoftBizMailer@gmail.com',
-          to: rows[0].email,
-          subject: 'New SzoftBizmagicURL Login Link',
-          html: `<div><h1>You can now log in using the link below</h1>
+        let r = Math.random().toString(36).substring(7);
+        let tokenBase = email + r;
+        bcrypt.hash(tokenBase, 12).then((token) => {
+          // tarolas
+          dbConnection.execute('UPDATE `usersWithLogin` SET `token`=?', [
+            token,
+          ]);
+
+          let magicLink = `http://localhost:3000/magicLinkLogin?way=email&credentials=${token}`;
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: 'testSzoftBizMailer@gmail.com',
+              pass: 'Test123!',
+            },
+          });
+          const mailOptions = {
+            from: 'testSzoftBizMailer@gmail.com',
+            to: rows[0].email,
+            subject: 'New SzoftBizmagicURL Login Link',
+            html: `<div><h1>You can now log in using the link below</h1>
             <br />
             <p> Please click here: 
               <a href=${magicLink} target="_blank">${magicLink}</a>
             </p>
             </div>`,
-        };
-        transporter.sendMail(mailOptions, (err, info) => {
-          if (err) {
-            login_errors: [
-              'Something went wrong while sending your magic link',
-            ];
-          }
-        });
-        res.render('login-register', {
-          login_errors: ['Invalid Password!'],
+          };
+          transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+              login_errors: [
+                'Something went wrong while sending your magic link',
+              ];
+            }
+          });
+          res.render('login-register', {
+            login_errors: ['Invalid Password!'],
+          });
         });
       })
       .catch((err) => {
@@ -252,20 +258,16 @@ app.get('/logout', (req, res) => {
 app.get('/magicLinkLogin', (req, res) => {
   var way = req.query.way;
   if (way === 'email') {
-    var credentialsEncoded = req.query.credentials;
-    var decodedCredentials = Buffer.from(credentialsEncoded, 'base64');
-    var email = decodedCredentials.toString().split('==')[0];
-    var password = decodedCredentials.toString().split('==')[1];
-    console.log(`${email}  ${password}`);
+    var token = req.query.credentials;
     dbConnection
-      .execute('SELECT * FROM `users` WHERE `email`=? AND `password`=?', [
-        email,
-        password,
-      ])
+      .execute('SELECT * FROM `usersWithLogin` WHERE `token`=?', [token])
       .then(([rows]) => {
         if (rows.length == 1) {
           req.session.isLoggedIn = true;
           req.session.userID = rows[0].id;
+
+          //destroy token
+          dbConnection.execute('UPDATE `usersWithLogin` SET `token`=NULL');
 
           res.redirect('/');
         } else {
