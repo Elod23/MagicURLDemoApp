@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Login Or Register</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container p-5">
+      <h1 class="text-center mb-5 text-uppercase text-muted">MagicURL Check</h1>
+      <div class="row">
+        <div class="col-sm-5 bg-light border rounded py-3">
+          <h2 class="text-center">Login via Magic Link</h2>
+          <form action="/login-magicurl" method="POST">
+            <div class="form-group">
+              <label for="_email">Email</label>
+              <input
+                type="text"
+                name="user_email"
+                id="_email"
+                class="form-control"
+                placeholder="Email"
+                rnodeequired
+              />
+            </div>
+            <button type="submit" class="btn btn-success">
+              Get Magic Link
+            </button>
+          </form>
+      </div>
+    </div>
+  </body>
+</html>
