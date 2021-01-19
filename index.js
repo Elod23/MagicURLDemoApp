@@ -201,37 +201,43 @@ app.post(
     dbConnection
       .execute('SELECT * FROM `users` WHERE `email`=?', [user_email])
       .then(([rows]) => {
-        let email = rows[0].email;
-        let password = rows[0].password;
-        var encodedCredentials = Buffer.from(email + '==' + password).toString(
-          'base64'
-        );
-        let magicLink = `http://localhost:3000/magicLinkLogin?way=email&credentials=${encodedCredentials}`;
-        const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: 'testSzoftBizMailer@gmail.com',
-            pass: 'Test123!',
-          },
-        });
-        const mailOptions = {
-          from: 'testSzoftBizMailer@gmail.com',
-          to: rows[0].email,
-          subject: 'New SzoftBizmagicURL Login Link',
-          html: `<div><h1>You can now log in using the link below</h1>
+        if (rows.length > 0) {
+          let email = rows[0].email;
+          let password = rows[0].password;
+          var encodedCredentials = Buffer.from(
+            email + '==' + password
+          ).toString('base64');
+          let magicLink = `http://localhost:3000/magicLinkLogin?way=email&credentials=${encodedCredentials}`;
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: 'testSzoftBizMailer@gmail.com',
+              pass: 'Test123!',
+            },
+          });
+          const mailOptions = {
+            from: 'testSzoftBizMailer@gmail.com',
+            to: rows[0].email,
+            subject: 'New SzoftBizmagicURL Login Link',
+            html: `<div><h1>You can now log in using the link below</h1>
             <br />
             <p> Please click here: 
               <a href=${magicLink} target="_blank">${magicLink}</a>
             </p>
             </div>`,
-        };
-        transporter.sendMail(mailOptions, (err, info) => {
-          if (err) {
-            login_errors: [
-              'Something went wrong while sending your magic link',
-            ];
-          }
-        });
+          };
+          transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+              login_errors: [
+                'Something went wrong while sending your magic link',
+              ];
+            }
+          });
+        } else {
+          res.render('login-register', {
+            login_errors: ['There is no account for the given email!'],
+          });
+        }
         res.render('login-register', {
           login_errors: ['Invalid Password!'],
         });
