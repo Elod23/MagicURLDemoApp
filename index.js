@@ -207,9 +207,10 @@ app.post(
         let tokenBase = email + r;
         bcrypt.hash(tokenBase, 12).then((token) => {
           // tarolas
-          dbConnection.execute('UPDATE `usersWithLogin` SET `token`=?', [
-            token,
-          ]);
+          dbConnection.execute(
+            'UPDATE `usersWithLogin` SET `token`=? WHERE `email`=?',
+            [token, email]
+          );
 
           let magicLink = `http://localhost:3000/magicLinkLogin?way=email&credentials=${token}`;
           const transporter = nodemailer.createTransport({
